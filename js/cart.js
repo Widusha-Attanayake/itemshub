@@ -16,7 +16,7 @@ export function saveCart(cart) {
 export function addToCart(product, quantity = 1) {
   const cart = getCart();
   const existingItem = cart.find(item => item.productId === product.id);
-  
+
   if (existingItem) {
     const newQty = existingItem.quantity + quantity;
     if (newQty > product.stock) {
@@ -36,7 +36,7 @@ export function addToCart(product, quantity = 1) {
       maxStock: product.stock
     });
   }
-  
+
   saveCart(cart);
   return cart;
 }
@@ -52,15 +52,15 @@ export function updateQuantity(productId, quantity) {
   const cart = getCart();
   const item = cart.find(item => item.productId === productId);
   if (!item) return cart;
-  
+
   if (quantity <= 0) {
     return removeFromCart(productId);
   }
-  
+
   if (quantity > item.maxStock) {
     throw new Error('Not enough stock available');
   }
-  
+
   item.quantity = quantity;
   saveCart(cart);
   return cart;
@@ -90,3 +90,4 @@ export function updateCartBadge() {
 
 // Initialize badge on page load
 document.addEventListener('DOMContentLoaded', updateCartBadge);
+

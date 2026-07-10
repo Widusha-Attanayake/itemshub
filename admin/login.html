@@ -1,205 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - MyStore</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .login-container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        .login-container h1 {
-            text-align: center;
-            color: #1a1a2e;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        .login-container p {
-            text-align: center;
-            color: #6b7280;
-            margin-bottom: 2rem;
-        }
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 0.3rem;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #4a6cf7;
-            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
-        }
-        .btn-login {
-            width: 100%;
-            padding: 0.8rem;
-            background: #4a6cf7;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-login:hover {
-            background: #3a5cd5;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(74, 108, 247, 0.3);
-        }
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        .back-link:hover {
-            color: #4a6cf7;
-        }
-        .error-message {
-            margin-top: 1rem;
-            padding: 0.8rem;
-            background: #fee2e2;
-            color: #991b1b;
-            border-radius: 10px;
-            display: none;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-        .success-message {
-            margin-top: 1rem;
-            padding: 0.8rem;
-            background: #d1fae5;
-            color: #065f46;
-            border-radius: 10px;
-            display: none;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - MyStore</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+  <!-- Your main CSS (make sure it's the new one) -->
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    /* Fallback in case style.css isn't loaded */
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-box h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+    }
+    .login-box p {
+      color: #64748b;
+      margin-bottom: 2rem;
+    }
+    .form-group {
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+    }
+    .btn-login {
+      width: 100%;
+      padding: 0.8rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-login:hover {
+      background: #4338ca;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79,70,229,0.3);
+    }
+    .back-link {
+      display: block;
+      margin-top: 1.5rem;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back-link:hover { color: #4f46e5; }
+    .error-msg {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 0.7rem;
+      border-radius: 10px;
+      display: none;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    .success-msg {
+      background: #d1fae5;
+      color: #065f46;
+      padding: 0.7rem;
+      border-radius: 10px;
+      display: none;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
-<body style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px;">
-    <div class="login-container">
-        <h1>🔐 Admin Login</h1>
-        <p>Enter your credentials to access the admin panel</p>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" placeholder="admin@example.com" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
-            </div>
-            
-            <button type="submit" class="btn-login" id="loginBtn">Login</button>
-        </form>
-        
-        <div id="errorMessage" class="error-message"></div>
-        <div id="successMessage" class="success-message"></div>
-        
-        <a href="../index.html" class="back-link">← Back to Store</a>
+<body>
+
+  <div class="login-box">
+    <h1>🔐 Admin Login</h1>
+    <p>Enter your credentials to access the dashboard</p>
+
+    <!-- Demo credentials hint -->
+    <div style="background:#f1f5f9; padding:0.7rem; border-radius:10px; margin-bottom:1.5rem; font-size:0.9rem; color:#334155;">
+      <strong>Demo:</strong> sam@email.com / sam123
     </div>
 
-    <script type="module">
-        // Import Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-        
-        // Your Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyDR7j6_oHbqAk6_rVhexRIR8NY5-GzahMg",
-            authDomain: "itemshub-9074c.firebaseapp.com",
-            projectId: "itemshub-9074c",
-            storageBucket: "itemshub-9074c.firebasestorage.app",
-            messagingSenderId: "921561412093",
-            appId: "1:921561412093:web:d459421b1a89675f5da994",
-            measurementId: "G-Q03JM13XGP"
-        };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        
-        // Handle login form
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('loginBtn');
-            const errorDiv = document.getElementById('errorMessage');
-            const successDiv = document.getElementById('successMessage');
-            
-            // Hide messages
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
-            
-            if (!email || !password) {
-                errorDiv.textContent = 'Please enter both email and password';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            // Show loading
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Logging in...';
-            
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                successDiv.textContent = '✅ Login successful! Redirecting...';
-                successDiv.style.display = 'block';
-                
-                setTimeout(() => {
-                    window.location.href = 'index.html';  // This stays the same since we're in the admin folder
-                }, 1000);
-                
-            } catch (error) {
-                let errorMessage = 'Login failed. Please try again.';
-                if (error.code === 'auth/user-not-found') {
-                    errorMessage = 'No account found with this email address';
-                } else if (error.code === 'auth/wrong-password') {
-                    errorMessage = 'Incorrect password';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Invalid email address';
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMessage = 'Too many failed attempts. Please try again later';
-                }
-                errorDiv.textContent = '❌ ' + errorMessage;
-                errorDiv.style.display = 'block';
-            }
-            
-            // Reset button
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
-        });
-        
-        // Test Firebase connection on load
-        console.log('🔥 Firebase initialized');
-        console.log('📧 Try logging in with your admin credentials');
-    </script>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="sam@email.com" value="sam@email.com" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" value="sam123" required />
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+    </form>
+
+    <div id="errorMsg" class="error-msg"></div>
+    <div id="successMsg" class="success-msg"></div>
+
+    <a href="../index.html" class="back-link">← Back to Store</a>
+  </div>
+
+  <script type="module">
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDR7j6_oHbqAk6_rVhexRIR8NY5-GzahMg",
+      authDomain: "itemshub-9074c.firebaseapp.com",
+      projectId: "itemshub-9074c",
+      storageBucket: "itemshub-9074c.firebasestorage.app",
+      messagingSenderId: "921561412093",
+      appId: "1:921561412093:web:d459421b1a89675f5da994",
+      measurementId: "G-Q03JM13XGP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById('loginForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorDiv = document.getElementById('errorMsg');
+    const successDiv = document.getElementById('successMsg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorDiv.style.display = 'none';
+      successDiv.style.display = 'none';
+
+      const emailVal = email.value.trim();
+      const passVal = password.value;
+
+      if (!emailVal || !passVal) {
+        errorDiv.textContent = 'Please enter both email and password.';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in...';
+
+      try {
+        await signInWithEmailAndPassword(auth, emailVal, passVal);
+        successDiv.textContent = '✅ Login successful! Redirecting...';
+        successDiv.style.display = 'block';
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } catch (error) {
+        let msg = 'Login failed. Please try again.';
+        if (error.code === 'auth/user-not-found') msg = 'No account found with this email.';
+        else if (error.code === 'auth/wrong-password') msg = 'Incorrect password.';
+        else if (error.code === 'auth/invalid-email') msg = 'Invalid email address.';
+        else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+        errorDiv.textContent = '❌ ' + msg;
+        errorDiv.style.display = 'block';
+      }
+
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
+    });
+  </script>
 </body>
 </html>

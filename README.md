@@ -25,7 +25,7 @@ A full-featured e-commerce platform with admin dashboard, built with HTML, CSS, 
 - Firebase Authentication
 - LocalStorage (Cart persistence)
 
-## 📋 Setup Instructions
+## 📋 Setup Instructions,
 
 1. Clone this repository
 2. Create a Firebase project

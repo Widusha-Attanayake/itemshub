@@ -208,6 +208,7 @@
         
         .btn-edit:hover {
             background: #bfdbfe;
+            transform: scale(1.05);
         }
         
         .btn-delete {
@@ -217,6 +218,7 @@
         
         .btn-delete:hover {
             background: #fecaca;
+            transform: scale(1.05);
         }
         
         .modal {
@@ -231,6 +233,12 @@
             justify-content: center;
             z-index: 9999;
             padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
         }
         
         .modal-content {
@@ -241,6 +249,7 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
         .modal-content h2 {
@@ -275,6 +284,7 @@
         .form-group textarea:focus {
             outline: none;
             border-color: #4a6cf7;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
         }
         
         .form-group textarea {
@@ -351,12 +361,14 @@
             .actions {
                 flex-direction: column;
             }
+            .form-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <h2>My<span>Store</span></h2>
             <a href="index.html">
@@ -375,17 +387,16 @@
             </div>
         </aside>
         
-        <!-- Main Content -->
         <main class="main-content">
             <div class="header">
-                <h1>Product Management</h1>
+                <h1>📦 Product Management</h1>
                 <button class="btn btn-primary" onclick="showAddProductForm()">
                     <i class="fas fa-plus"></i> Add New Product
                 </button>
             </div>
             
             <div class="toolbar">
-                <input type="text" id="searchProducts" placeholder="Search products..." oninput="filterProducts()">
+                <input type="text" id="searchProducts" placeholder="🔍 Search products..." oninput="filterProducts()">
             </div>
             
             <div class="table-container" id="productsTable">
@@ -413,7 +424,8 @@
             updateDoc, 
             deleteDoc, 
             doc, 
-            serverTimestamp 
+            serverTimestamp,
+            getDoc
         } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
         
         // Firebase Config
@@ -497,12 +509,16 @@
                                 </td>
                                 <td><strong>${p.name}</strong></td>
                                 <td>${p.category}</td>
-                                <td>$${p.price.toFixed(2)}</td>
-                                <td style="color: ${p.stock < 5 ? '#ef4444' : 'inherit'}">${p.stock}</td>
+                                <td>$${p.price ? p.price.toFixed(2) : '0.00'}</td>
+                                <td style="color: ${p.stock < 5 ? '#ef4444' : 'inherit'}">${p.stock || 0}</td>
                                 <td>
                                     <div class="actions">
-                                        <button class="btn-edit" onclick="editProduct('${p.id}')">Edit</button>
-                                        <button class="btn-delete" onclick="deleteProduct('${p.id}')">Delete</button>
+                                        <button class="btn-edit" onclick="window.editProduct('${p.id}')">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn-delete" onclick="window.deleteProduct('${p.id}')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -519,11 +535,11 @@
             modal.id = 'productModal';
             modal.innerHTML = `
                 <div class="modal-content">
-                    <h2>Add New Product</h2>
+                    <h2>🆕 Add New Product</h2>
                     <form id="productForm">
                         <div class="form-group">
                             <label for="productName">Name *</label>
-                            <input type="text" id="productName" required>
+                            <input type="text" id="productName" placeholder="Enter product name" required>
                         </div>
                         <div class="form-group">
                             <label for="productCategory">Category *</label>
@@ -541,15 +557,15 @@
                         </div>
                         <div class="form-group">
                             <label for="productPrice">Price *</label>
-                            <input type="number" id="productPrice" step="0.01" required>
+                            <input type="number" id="productPrice" step="0.01" placeholder="0.00" required>
                         </div>
                         <div class="form-group">
                             <label for="productStock">Stock *</label>
-                            <input type="number" id="productStock" required>
+                            <input type="number" id="productStock" placeholder="0" required>
                         </div>
                         <div class="form-group">
                             <label for="productDescription">Description</label>
-                            <textarea id="productDescription"></textarea>
+                            <textarea id="productDescription" placeholder="Describe your product..."></textarea>
                         </div>
                         <div class="form-group">
                             <label for="productImages">Image URL</label>
@@ -558,7 +574,7 @@
                         <div class="form-group">
                             <label>
                                 <input type="checkbox" id="productFeatured">
-                                Featured Product
+                                ⭐ Featured Product (appears on homepage)
                             </label>
                         </div>
                         <div class="form-actions">
@@ -584,7 +600,7 @@
             const stock = parseInt(document.getElementById('productStock').value);
             const description = document.getElementById('productDescription').value.trim();
             const images = document.getElementById('productImages').value.trim() ? 
-                [document.getElementById('productImages').value.trim()] : [];
+                [document.getElementById('productImages').value.trim()] : ['https://via.placeholder.com/300'];
             const featured = document.getElementById('productFeatured').checked;
             
             if (!name || !category || isNaN(price) || isNaN(stock)) {
@@ -592,7 +608,7 @@
                 return;
             }
             
-            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
             
             try {
                 await addDoc(collection(db, 'products'), {
@@ -607,122 +623,146 @@
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });
-                showToast('Product created successfully!', 'success');
+                showToast('✅ Product created successfully!', 'success');
                 closeModal();
                 loadProducts();
             } catch (error) {
                 console.error('Error creating product:', error);
-                showToast('Error creating product', 'error');
+                showToast('Error creating product: ' + error.message, 'error');
             }
         }
         
-        // Edit product
+        // 🔥 FIXED: Edit product - Loads data into form
         window.editProduct = async (id) => {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
-            
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.id = 'productModal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h2>Edit Product</h2>
-                    <form id="productForm">
-                        <div class="form-group">
-                            <label for="productName">Name *</label>
-                            <input type="text" id="productName" value="${product.name}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="productCategory">Category *</label>
-                            <select id="productCategory" required>
-                                <option value="">Select Category</option>
-                                ${['Electronics', 'Clothing', 'Books', 'Home', 'Beauty', 'Sports', 'Toys', 'Other'].map(cat => `
-                                    <option value="${cat}" ${product.category === cat ? 'selected' : ''}>${cat}</option>
-                                `).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="productPrice">Price *</label>
-                            <input type="number" id="productPrice" step="0.01" value="${product.price}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="productStock">Stock *</label>
-                            <input type="number" id="productStock" value="${product.stock}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="productDescription">Description</label>
-                            <textarea id="productDescription">${product.description || ''}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="productImages">Image URL</label>
-                            <input type="text" id="productImages" value="${product.images && product.images[0] || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="productFeatured" ${product.featured ? 'checked' : ''}>
-                                Featured Product
-                            </label>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Update Product</button>
-                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            document.getElementById('productForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('productName').value.trim();
-                const category = document.getElementById('productCategory').value;
-                const price = parseFloat(document.getElementById('productPrice').value);
-                const stock = parseInt(document.getElementById('productStock').value);
-                const description = document.getElementById('productDescription').value.trim();
-                const images = document.getElementById('productImages').value.trim() ? 
-                    [document.getElementById('productImages').value.trim()] : [];
-                const featured = document.getElementById('productFeatured').checked;
+            try {
+                // Get the product data from Firestore
+                const productRef = doc(db, 'products', id);
+                const productSnap = await getDoc(productRef);
+                
+                if (!productSnap.exists()) {
+                    showToast('Product not found', 'error');
+                    return;
+                }
+                
+                const product = { id: productSnap.id, ...productSnap.data() };
+                console.log('Editing product:', product);
+                
+                // Create the edit modal
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.id = 'productModal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <h2>✏️ Edit Product</h2>
+                        <form id="editProductForm">
+                            <div class="form-group">
+                                <label for="editProductName">Name *</label>
+                                <input type="text" id="editProductName" value="${product.name || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductCategory">Category *</label>
+                                <select id="editProductCategory" required>
+                                    <option value="">Select Category</option>
+                                    ${['Electronics', 'Clothing', 'Books', 'Home', 'Beauty', 'Sports', 'Toys', 'Other'].map(cat => `
+                                        <option value="${cat}" ${product.category === cat ? 'selected' : ''}>${cat}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductPrice">Price *</label>
+                                <input type="number" id="editProductPrice" step="0.01" value="${product.price || 0}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductStock">Stock *</label>
+                                <input type="number" id="editProductStock" value="${product.stock || 0}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductDescription">Description</label>
+                                <textarea id="editProductDescription">${product.description || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductImages">Image URL</label>
+                                <input type="text" id="editProductImages" value="${product.images && product.images[0] || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="editProductFeatured" ${product.featured ? 'checked' : ''}>
+                                    ⭐ Featured Product
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Update Product</button>
+                                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Handle form submission
+                document.getElementById('editProductForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await updateProduct(id);
+                });
+                
+            } catch (error) {
+                console.error('Error loading product for edit:', error);
+                showToast('Error loading product: ' + error.message, 'error');
+            }
+        };
+        
+        // 🔥 FIXED: Update product function
+        async function updateProduct(id) {
+            try {
+                const name = document.getElementById('editProductName').value.trim();
+                const category = document.getElementById('editProductCategory').value;
+                const price = parseFloat(document.getElementById('editProductPrice').value);
+                const stock = parseInt(document.getElementById('editProductStock').value);
+                const description = document.getElementById('editProductDescription').value.trim();
+                const images = document.getElementById('editProductImages').value.trim() ? 
+                    [document.getElementById('editProductImages').value.trim()] : ['https://via.placeholder.com/300'];
+                const featured = document.getElementById('editProductFeatured').checked;
                 
                 if (!name || !category || isNaN(price) || isNaN(stock)) {
                     showToast('Please fill in all required fields', 'error');
                     return;
                 }
                 
-                const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
                 
-                try {
-                    await updateDoc(doc(db, 'products', id), {
-                        name,
-                        slug,
-                        category,
-                        price,
-                        stock,
-                        description,
-                        images,
-                        featured,
-                        updatedAt: serverTimestamp()
-                    });
-                    showToast('Product updated successfully!', 'success');
-                    closeModal();
-                    loadProducts();
-                } catch (error) {
-                    console.error('Error updating product:', error);
-                    showToast('Error updating product', 'error');
-                }
-            });
-        };
+                const productRef = doc(db, 'products', id);
+                await updateDoc(productRef, {
+                    name,
+                    slug,
+                    category,
+                    price,
+                    stock,
+                    description,
+                    images,
+                    featured,
+                    updatedAt: serverTimestamp()
+                });
+                
+                showToast('✅ Product updated successfully!', 'success');
+                closeModal();
+                loadProducts();
+            } catch (error) {
+                console.error('Error updating product:', error);
+                showToast('Error updating product: ' + error.message, 'error');
+            }
+        }
         
         // Delete product
         window.deleteProduct = async (id) => {
-            if (!confirm('Are you sure you want to delete this product?')) return;
+            if (!confirm('⚠️ Are you sure you want to delete this product?')) return;
             
             try {
                 await deleteDoc(doc(db, 'products', id));
-                showToast('Product deleted successfully!', 'success');
+                showToast('🗑️ Product deleted successfully!', 'success');
                 loadProducts();
             } catch (error) {
                 console.error('Error deleting product:', error);
-                showToast('Error deleting product', 'error');
+                showToast('Error deleting product: ' + error.message, 'error');
             }
         };
         
@@ -742,7 +782,7 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            toast.textContent = message;
+            toast.innerHTML = message;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }

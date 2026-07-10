@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Add to your <head> section -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Add Products</title>
+    <style>
+        body { font-family: Arial; padding: 2rem; max-width: 600px; margin: 0 auto; }
+        button { padding: 15px 30px; background: #4a6cf7; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🌱 Add Sample Products</h1>
+    <button onclick="addProducts()">Add Products</button>
+    <div id="status"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDR7j6_oHbqAk6_rVhexRIR8NY5-GzahMg",
+            authDomain: "itemshub-9074c.firebaseapp.com",
+            projectId: "itemshub-9074c",
+            storageBucket: "itemshub-9074c.firebasestorage.app",
+            messagingSenderId: "921561412093",
+            appId: "1:921561412093:web:d459421b1a89675f5da994"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        window.addProducts = async () => {
+            const status = document.getElementById('status');
+            status.textContent = 'Adding products...';
+            
+            const products = [
+                { name: "Test Product", slug: "test-product", category: "Electronics", price: 29.99, stock: 100, description: "Test product", images: ["https://via.placeholder.com/300"], featured: true },
+                { name: "Wireless Headphones", slug: "wireless-headphones", category: "Electronics", price: 89.99, stock: 50, description: "Premium headphones", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300"], featured: true },
+                { name: "Smart Watch", slug: "smart-watch", category: "Electronics", price: 149.99, stock: 30, description: "Advanced smart watch", images: ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300"], featured: true }
+            ];
+            
+            try {
+                for (const product of products) {
+                    await addDoc(collection(db, 'products'), product);
+                }
+                status.innerHTML = '✅ Products added successfully! <a href="index.html">Go to Store</a>';
+                status.className = 'success';
+            } catch (error) {
+                status.textContent = '❌ Error: ' + error.message;
+                status.className = 'error';
+            }
+        };
+    </script>
+</body>
+</html>

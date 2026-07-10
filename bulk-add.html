@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Add Products</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { color: #1F2937; margin-bottom: 0.5rem; }
+        p { color: #6B7280; margin-bottom: 2rem; }
+        .btn {
+            padding: 1rem 2.5rem;
+            background: #2563EB;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn:hover {
+            background: #1D4ED8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background: #F3F4F6;
+            font-weight: 500;
+        }
+        .status.success { background: #ECFDF5; color: #065F46; }
+        .status.error { background: #FEF2F2; color: #991B1B; }
+        .status.loading { background: #DBEAFE; color: #1E40AF; }
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #2563EB;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Bulk Add Products</h1>
+        <p>Add 100 dummy products to your Firestore database instantly.</p>
+        
+        <button class="btn" id="addBtn">Add 100 Products</button>
+        
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="status" id="status">Ready to add products...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDR7j6_oHbqAk6_rVhexRIR8NY5-GzahMg",
+            authDomain: "itemshub-9074c.firebaseapp.com",
+            projectId: "itemshub-9074c",
+            storageBucket: "itemshub-9074c.firebasestorage.app",
+            messagingSenderId: "921561412093",
+            appId: "1:921561412093:web:d459421b1a89675f5da994"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const categories = ['Electronics', 'Clothing', 'Books', 'Home', 'Beauty', 'Sports', 'Toys', 'Other'];
+        const images = [
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300',
+            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300',
+            'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300',
+            'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300',
+            'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300',
+            'https://images.unsplash.com/photo-1586816879360-004f5b0c51e5?w=300',
+            'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=300',
+            'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300',
+            'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=300',
+            'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300'
+        ];
+
+        const productNames = [
+            'Premium Wireless Headphones', 'Smart Watch Pro', 'Classic Leather Jacket',
+            'Organic Cotton T-Shirt', 'RGB Gaming Mouse', 'Wireless Charging Pad',
+            'Yoga Mat Premium', 'Coffee Maker Deluxe', 'Bluetooth Speaker',
+            'Fitness Tracker', 'Designer Backpack', 'Noise Cancelling Earbuds',
+            'Portable Power Bank', 'Mechanical Keyboard', 'Phone Case',
+            'Laptop Sleeve', 'Desk Lamp', 'Water Bottle', 'Running Shoes',
+            'Sunglasses', 'Wallet', 'Watch Strap', 'Camera Tripod',
+            'Drone Mini', 'Action Camera', 'Gaming Chair', 'Monitor Stand',
+            'Cable Organizer', 'Desk Mat', 'Pen Holder', 'Notebook Set',
+            'Facial Cleanser', 'Moisturizer', 'Hair Dryer', 'Straightener',
+            'Makeup Kit', 'Perfume Set', 'Fitness Band', 'Sports Bag',
+            'Waterproof Phone Pouch', 'Portable Speaker', 'Selfie Stick',
+            'Tripod', 'Phone Stand', 'Car Mount', 'Screen Protector',
+            'Microphone', 'Webcam', 'Lighting Kit', 'Green Screen'
+        ];
+
+        async function addProducts() {
+            const btn = document.getElementById('addBtn');
+            const status = document.getElementById('status');
+            const progressBar = document.getElementById('progressBar');
+            
+            btn.disabled = true;
+            status.className = 'status loading';
+            status.textContent = '⏳ Adding products...';
+            
+            const totalProducts = 100;
+            let added = 0;
+            let errors = 0;
+
+            for (let i = 0; i < totalProducts; i++) {
+                try {
+                    const randomName = productNames[Math.floor(Math.random() * productNames.length)];
+                    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+                    const randomImage = images[Math.floor(Math.random() * images.length)];
+                    const randomPrice = (Math.random() * 150 + 10).toFixed(2);
+                    const randomStock = Math.floor(Math.random() * 100) + 1;
+                    const randomFeatured = Math.random() > 0.7;
+                    
+                    const slug = randomName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+                    await addDoc(collection(db, 'products'), {
+                        name: `${randomName} ${i + 1}`,
+                        slug: `${slug}-${i + 1}`,
+                        category: randomCategory,
+                        price: parseFloat(randomPrice),
+                        stock: randomStock,
+                        description: `High-quality ${randomName.toLowerCase()} perfect for everyday use.`,
+                        images: [randomImage],
+                        featured: randomFeatured,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    
+                    added++;
+                    const progress = Math.round((added / totalProducts) * 100);
+                    progressBar.style.width = progress + '%';
+                    status.textContent = `⏳ Adding products... ${added}/${totalProducts}`;
+                    
+                } catch (error) {
+                    errors++;
+                    console.error('Error adding product:', error);
+                }
+            }
+
+            if (errors === 0) {
+                status.className = 'status success';
+                status.innerHTML = `✅ Successfully added ${added} products to your store! <br> <a href="index.html" style="color: #2563EB; font-weight: 600;">Go to Store →</a>`;
+            } else {
+                status.className = 'status error';
+                status.textContent = `⚠️ Added ${added} products, but ${errors} failed. Check console for details.`;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '✅ Done!';
+            progressBar.style.width = '100%';
+        }
+
+        document.getElementById('addBtn').addEventListener('click', addProducts);
+    </script>
+</body>
+</html>

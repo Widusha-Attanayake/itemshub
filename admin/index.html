@@ -1,17 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - MyStore</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - MyStore</title>
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ===== GLOBAL RESET & VARIABLES ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #818cf8;
+      --primary-dark: #4338ca;
+      --secondary: #0f172a;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
+      --radius: 12px;
+    }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      line-height: 1.6;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ===== ADMIN LAYOUT ===== */
+    .admin-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 280px;
+      background: var(--secondary);
+      color: #fff;
+      padding: 2rem 1.5rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+      transition: all 0.2s;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+    }
+    .sidebar .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 2.5rem;
+      letter-spacing: -0.5px;
+    }
+    .sidebar .logo span { color: var(--primary-light); }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: var(--gray-300);
+      border-radius: 10px;
+      margin-bottom: 0.25rem;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .sidebar a i { width: 20px; }
+    .sidebar a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .sidebar a.active {
+      background: rgba(79,70,229,0.2);
+      color: #fff;
+      box-shadow: inset 3px 0 0 var(--primary);
+    }
+    .sidebar .logout {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar .logout a { color: var(--danger); }
+    .sidebar .logout a:hover { background: rgba(239,68,68,0.1); }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      margin-left: 280px;
+      padding: 2rem 2.5rem;
+      flex: 1;
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .admin-header h1 { font-size: 2rem; font-weight: 700; }
+    .admin-header p { color: var(--gray-500); }
+    .admin-header .store-link {
+      background: var(--gray-200);
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      color: var(--gray-700);
+      transition: all 0.2s;
+    }
+    .admin-header .store-link:hover {
+      background: var(--gray-300);
+      transform: translateY(-2px);
+    }
+
+    /* ===== STATS CARDS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: #fff;
+      padding: 1.5rem 1.75rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--gray-200);
+      transition: all 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .stat-card .number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    .stat-card .label {
+      color: var(--gray-500);
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 0.25rem;
+    }
+    .stat-card .icon {
+      float: right;
+      font-size: 2rem;
+      color: var(--gray-300);
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--gray-200);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 2rem;
+      transition: all 0.2s;
+    }
+    .card:hover { box-shadow: var(--shadow-lg); }
+    .card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card h3 i { color: var(--primary); }
+
+    /* ===== TABLES ===== */
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: var(--gray-50);
+      padding: 0.9rem 1.2rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td {
+      padding: 0.9rem 1.2rem;
+      border-top: 1px solid var(--gray-100);
+      vertical-align: middle;
+    }
+    tr:hover { background: var(--gray-50); }
+
+    /* ===== BADGES ===== */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-confirmed { background: #dbeafe; color: #1e40af; }
+    .badge-shipped { background: #d1fae5; color: #065f46; }
+    .badge-delivered { background: #d1fae5; color: #065f46; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--gray-500);
+    }
+    .empty-state i {
+      font-size: 3rem;
+      color: var(--gray-300);
+      margin-bottom: 0.5rem;
+    }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 9999;
+    }
+    .toast {
+      padding: 0.8rem 1.5rem;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      margin-top: 0.5rem;
+      animation: slideIn 0.3s ease;
+    }
+    .toast-success { background: var(--success); }
+    .toast-error { background: var(--danger); }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 1rem;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 1.5rem;
+      }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .admin-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
-    <main id="app"></main>
-    <script type="module">
-        import renderAdminDashboard from '../js/pages/adminDashboard.js';
-        renderAdminDashboard();
-    </script>
+
+  <!-- ===== ADMIN LAYOUT ===== -->
+  <div class="admin-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="logo">My<span>Store</span></div>
+      <a href="index.html" class="active">
+        <i class="fas fa-chart-pie"></i> Dashboard
+      </a>
+      <a href="products.html">
+        <i class="fas fa-box"></i> Products
+      </a>
+      <a href="orders.html">
+        <i class="fas fa-shopping-bag"></i> Orders
+      </a>
+      <div class="logout">
+        <a href="#" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- HEADER -->
+      <div class="admin-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Welcome back, Admin 👋</p>
+        </div>
+        <a href="../index.html" target="_blank" class="store-link">
+          <i class="fas fa-eye"></i> View Store
+        </a>
+      </div>
+
+      <!-- STATS CARDS -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="number" id="totalProducts">—</div>
+          <div class="label">Total Products</div>
+          <div class="icon"><i class="fas fa-cube"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="totalOrders">—</div>
+          <div class="label">Total Orders</div>
+          <div class="icon"><i class="fas fa-shopping-cart"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="pendingOrders">—</div>
+          <div class="label">Pending Orders</div>
+          <div class="icon"><i class="fas fa-clock"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="totalRevenue">—</div>
+          <div class="label">Total Revenue</div>
+          <div class="icon"><i class="fas fa-dollar-sign"></i></div>
+        </div>
+      </div>
+
+      <!-- RECENT ORDERS -->
+      <div class="card">
+        <h3><i class="fas fa-list-ul"></i> Recent Orders</h3>
+        <div class="table-wrap" id="recentOrders">
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No orders yet</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOW STOCK ALERTS -->
+      <div class="card">
+        <h3><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h3>
+        <div class="table-wrap" id="lowStock">
+          <div class="empty-state">
+            <i class="fas fa-check-circle" style="color: var(--success);"></i>
+            <p>All products have sufficient stock</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module">
+    // ===== FIREBASE IMPORTS =====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+    // ===== FIREBASE CONFIG =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyDR7j6_oHbqAk6_rVhexRIR8NY5-GzahMg",
+      authDomain: "itemshub-9074c.firebaseapp.com",
+      projectId: "itemshub-9074c",
+      storageBucket: "itemshub-9074c.firebasestorage.app",
+      messagingSenderId: "921561412093",
+      appId: "1:921561412093:web:d459421b1a89675f5da994",
+      measurementId: "G-Q03JM13XGP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ===== AUTH GUARD =====
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+
+    // ===== TOAST =====
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ===== LOGOUT =====
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      } catch (err) {
+        showToast('Logout failed: ' + err.message, 'error');
+      }
+    });
+
+    // ===== LOAD DASHBOARD DATA =====
+    async function loadDashboard() {
+      try {
+        // 1. Products
+        const productsSnap = await getDocs(collection(db, 'products'));
+        const products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        document.getElementById('totalProducts').textContent = products.length;
+
+        // 2. Orders
+        const ordersSnap = await getDocs(collection(db, 'orders'));
+        const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const totalOrders = orders.length;
+        document.getElementById('totalOrders').textContent = totalOrders;
+
+        const pending = orders.filter(o => o.status === 'pending');
+        document.getElementById('pendingOrders').textContent = pending.length;
+
+        const revenue = orders
+          .filter(o => o.status !== 'cancelled')
+          .reduce((sum, o) => sum + (o.orderTotal || 0), 0);
+        document.getElementById('totalRevenue').textContent = `$${revenue.toFixed(2)}`;
+
+        // 3. Recent Orders (latest 5)
+        const recentContainer = document.getElementById('recentOrders');
+        if (orders.length === 0) {
+          recentContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No orders yet</p>
+            </div>
+          `;
+        } else {
+          const sorted = orders.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+          const recent = sorted.slice(0, 5);
+          let html = `<table>
+            <thead><tr>
+              <th>Order #</th><th>Customer</th><th>Total</th><th>Status</th>
+            </tr></thead><tbody>`;
+          recent.forEach(o => {
+            const status = o.status || 'pending';
+            html += `
+              <tr>
+                <td><a href="order-detail.html?id=${o.id}" style="color:var(--primary);font-weight:600;">${o.orderNumber || 'N/A'}</a></td>
+                <td>${o.guestName || 'Unknown'}</td>
+                <td>$${(o.orderTotal || 0).toFixed(2)}</td>
+                <td><span class="badge badge-${status}">${status}</span></td>
+              </tr>
+            `;
+          });
+          html += `</tbody></table>`;
+          recentContainer.innerHTML = html;
+        }
+
+        // 4. Low Stock Alerts
+        const lowContainer = document.getElementById('lowStock');
+        const lowStock = products.filter(p => p.stock < 5);
+        if (lowStock.length === 0) {
+          lowContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-check-circle" style="color: var(--success);"></i>
+              <p>All products have sufficient stock</p>
+            </div>
+          `;
+        } else {
+          let html = `<table>
+            <thead><tr><th>Product</th><th>Stock</th></tr></thead><tbody>`;
+          lowStock.forEach(p => {
+            html += `
+              <tr>
+                <td>${p.name}</td>
+                <td style="color: ${p.stock === 0 ? 'var(--danger)' : 'var(--warning)'}; font-weight:600;">
+                  ${p.stock}
+                </td>
+              </tr>
+            `;
+          });
+          html += `</tbody></table>`;
+          lowContainer.innerHTML = html;
+        }
+
+      } catch (error) {
+        console.error('Dashboard load error:', error);
+        showToast('Error loading dashboard data', 'error');
+      }
+    }
+
+    // Initial load
+    loadDashboard();
+
+    // Refresh every 60 seconds (optional)
+    setInterval(loadDashboard, 60000);
+  </script>
 </body>
 </html>

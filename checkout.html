@@ -4,17 +4,415 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - MyStore</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, sans-serif;
+            background: #F3F4F6;
+            color: #1F2937;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1F2937;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: #2563EB;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: #4B5563;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav a:hover {
+            color: #2563EB;
+        }
+
+        .cart-icon {
+            position: relative;
+            font-size: 1.3rem;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background: #2563EB;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 50%;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .hamburger {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+            .nav {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 1.5rem;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                gap: 1rem;
+            }
+            .nav.open {
+                display: flex;
+            }
+        }
+
+        /* Checkout */
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 2rem 0;
+            color: #1F2937;
+            letter-spacing: -0.02em;
+        }
+
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Checkout Form */
+        .checkout-form {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .checkout-form h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1F2937;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-group label .required {
+            color: #EF4444;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #FAFAFA;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2563EB;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-group input.error,
+        .form-group textarea.error {
+            border-color: #EF4444;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-group .error-text {
+            color: #EF4444;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .form-group .error-text.show {
+            display: block;
+        }
+
+        /* Order Summary in Checkout */
+        .checkout-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .checkout-summary h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #F3F4F6;
+        }
+
+        .checkout-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            font-size: 0.95rem;
+            color: #4B5563;
+        }
+
+        .checkout-item .item-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkout-item .item-name img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .checkout-item .item-price {
+            font-weight: 500;
+        }
+
+        .checkout-divider {
+            border: none;
+            border-top: 2px solid #F3F4F6;
+            margin: 0.75rem 0;
+        }
+
+        .checkout-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-weight: 500;
+            color: #4B5563;
+        }
+
+        .checkout-total .amount {
+            font-weight: 600;
+        }
+
+        .checkout-grand-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1F2937;
+            border-top: 2px solid #F3F4F6;
+            margin-top: 0.5rem;
+        }
+
+        .checkout-grand-total .amount {
+            color: #2563EB;
+        }
+
+        .btn-place-order {
+            width: 100%;
+            padding: 1rem;
+            background: #F59E0B;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .btn-place-order:hover {
+            background: #D97706;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-place-order:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-place-order:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s ease infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .toast-success { background: #10B981; }
+        .toast-error { background: #EF4444; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Footer */
+        .footer {
+            background: #1F2937;
+            color: #9CA3AF;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer h4 {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer a {
+            color: #9CA3AF;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+    </style>
 </head>
 <body>
+    <!-- Header -->
     <header class="header">
         <div class="container header-content">
-            <div class="logo">My<span>Store</span></div>
-            <button class="hamburger" onclick="toggleNav()">
+            <a href="index.html" class="logo">My<span>Store</span></a>
+            <button class="hamburger" onclick="document.querySelector('.nav').classList.toggle('open')">
                 <i class="fas fa-bars"></i>
             </button>
-            <nav class="nav" id="mainNav">
+            <nav class="nav">
                 <a href="index.html">Home</a>
                 <a href="search.html">Search</a>
                 <a href="cart.html" class="cart-icon">
@@ -26,37 +424,246 @@
         </div>
     </header>
 
-    <main id="app" class="container"></main>
+    <!-- Main -->
+    <main class="container" id="app"></main>
 
-    <footer style="background: #1a1a2e; color: white; padding: 2rem 0; margin-top: 3rem;">
+    <!-- Footer -->
+    <footer class="footer">
         <div class="container">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
-                <div>
-                    <h4>MyStore</h4>
-                    <p style="opacity: 0.7;">Your one-stop shop for everything.</p>
-                </div>
-                <div>
-                    <h4>Contact</h4>
-                    <p style="opacity: 0.7;"><i class="fas fa-envelope"></i> support@mystore.com</p>
-                    <p style="opacity: 0.7;"><i class="fas fa-phone"></i> +1 234 567 890</p>
-                </div>
-                <div>
-                    <h4>Info</h4>
-                    <p style="opacity: 0.7;">Free shipping over $50</p>
-                    <p style="opacity: 0.7;">Guest checkout</p>
-                </div>
+            <div>
+                <h4>MyStore</h4>
+                <p style="opacity: 0.7;">Your one-stop shop for everything.</p>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p><i class="fas fa-envelope"></i> support@mystore.com</p>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+            </div>
+            <div>
+                <h4>Info</h4>
+                <p>Free shipping over $50</p>
+                <p>Guest checkout</p>
             </div>
         </div>
     </footer>
 
     <script type="module">
-        import renderCheckout from './js/pages/checkout.js';
-        renderCheckout();
-    </script>
-    <script>
-        function toggleNav() {
-            document.getElementById('mainNav').classList.toggle('open');
+        import { getCart, getCartTotal, clearCart } from './js/cart.js';
+        import { createOrder, generateOrderNumber, updateStock } from './js/firestore-service.js';
+        import { showToast } from './js/utils.js';
+
+        function renderCheckout() {
+            const app = document.getElementById('app');
+            const cart = getCart();
+            const total = getCartTotal();
+
+            if (cart.length === 0) {
+                window.location.href = 'cart.html';
+                return;
+            }
+
+            const shipping = total >= 50 ? 0 : 5;
+            const grandTotal = total + shipping;
+
+            app.innerHTML = `
+                <h1 class="page-title">📋 Checkout</h1>
+                <div class="checkout-container">
+                    <div class="checkout-form">
+                        <h3>Shipping Information</h3>
+                        <form id="checkoutForm" novalidate>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="guestName">Full Name <span class="required">*</span></label>
+                                    <input type="text" id="guestName" placeholder="John Doe" required>
+                                    <div class="error-text" id="guestNameError">Please enter your full name</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="guestEmail">Email <span class="required">*</span></label>
+                                    <input type="email" id="guestEmail" placeholder="john@example.com" required>
+                                    <div class="error-text" id="guestEmailError">Please enter a valid email</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="guestPhone">Phone <span class="required">*</span></label>
+                                    <input type="tel" id="guestPhone" placeholder="+1 234 567 890" required>
+                                    <div class="error-text" id="guestPhoneError">Please enter your phone number</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="shippingCity">City <span class="required">*</span></label>
+                                    <input type="text" id="shippingCity" placeholder="New York" required>
+                                    <div class="error-text" id="shippingCityError">Please enter your city</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="shippingAddress">Shipping Address <span class="required">*</span></label>
+                                <textarea id="shippingAddress" placeholder="123 Main Street, Apt 4B" required></textarea>
+                                <div class="error-text" id="shippingAddressError">Please enter your shipping address</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="notes">Order Notes</label>
+                                <textarea id="notes" placeholder="Special delivery instructions..."></textarea>
+                            </div>
+                            <button type="submit" class="btn-place-order" id="placeOrderBtn">
+                                Place Order
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="checkout-summary">
+                        <h3>Order Summary</h3>
+                        ${cart.map(item => `
+                            <div class="checkout-item">
+                                <span class="item-name">
+                                    <img src="${item.image || 'https://via.placeholder.com/40'}" alt="${item.name}">
+                                    ${item.name} × ${item.quantity}
+                                </span>
+                                <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                        <hr class="checkout-divider">
+                        <div class="checkout-total">
+                            <span>Subtotal</span>
+                            <span class="amount">$${total.toFixed(2)}</span>
+                        </div>
+                        <div class="checkout-total">
+                            <span>Shipping</span>
+                            <span class="amount">${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}</span>
+                        </div>
+                        <div class="checkout-grand-total">
+                            <span>Total</span>
+                            <span class="amount">$${grandTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Form validation
+            const form = document.getElementById('checkoutForm');
+            const fields = ['guestName', 'guestEmail', 'guestPhone', 'shippingAddress', 'shippingCity'];
+
+            fields.forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                const error = document.getElementById(fieldId + 'Error');
+                input.addEventListener('blur', () => {
+                    if (!input.value.trim()) {
+                        input.classList.add('error');
+                        error.classList.add('show');
+                    } else {
+                        input.classList.remove('error');
+                        error.classList.remove('show');
+                    }
+                });
+                input.addEventListener('input', () => {
+                    if (input.value.trim()) {
+                        input.classList.remove('error');
+                        error.classList.remove('show');
+                    }
+                });
+            });
+
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = document.getElementById('placeOrderBtn');
+                let isValid = true;
+
+                fields.forEach(fieldId => {
+                    const input = document.getElementById(fieldId);
+                    const error = document.getElementById(fieldId + 'Error');
+                    if (!input.value.trim()) {
+                        input.classList.add('error');
+                        error.classList.add('show');
+                        isValid = false;
+                    }
+                });
+
+                const email = document.getElementById('guestEmail').value.trim();
+                if (email && !email.includes('@')) {
+                    const error = document.getElementById('guestEmailError');
+                    error.textContent = 'Please enter a valid email address';
+                    error.classList.add('show');
+                    document.getElementById('guestEmail').classList.add('error');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+
+                try {
+                    const name = document.getElementById('guestName').value.trim();
+                    const email = document.getElementById('guestEmail').value.trim();
+                    const phone = document.getElementById('guestPhone').value.trim();
+                    const address = document.getElementById('shippingAddress').value.trim();
+                    const city = document.getElementById('shippingCity').value.trim();
+                    const notes = document.getElementById('notes').value.trim();
+
+                    // Check stock
+                    for (const item of cart) {
+                        const { getProduct } = await import('./js/firestore-service.js');
+                        const product = await getProduct(item.productId);
+                        if (!product) {
+                            throw new Error(`Product "${item.name}" no longer exists`);
+                        }
+                        if (product.stock < item.quantity) {
+                            throw new Error(`Not enough stock for "${item.name}". Available: ${product.stock}`);
+                        }
+                    }
+
+                    const orderNumber = await generateOrderNumber();
+
+                    const orderData = {
+                        orderNumber,
+                        guestName: name,
+                        guestEmail: email,
+                        guestPhone: phone,
+                        shippingAddress: address,
+                        shippingCity: city,
+                        items: cart.map(item => ({
+                            productId: item.productId,
+                            productName: item.name,
+                            price: item.price,
+                            quantity: item.quantity,
+                            image: item.image
+                        })),
+                        subtotal: total,
+                        orderTotal: grandTotal,
+                        notes: notes || '',
+                        status: 'pending'
+                    };
+
+                    const orderId = await createOrder(orderData);
+
+                    for (const item of cart) {
+                        await updateStock(item.productId, item.quantity, 'decrement');
+                    }
+
+                    clearCart();
+                    window.location.href = `confirmation.html?id=${orderId}`;
+
+                } catch (error) {
+                    showToast(error.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Place Order';
+                }
+            });
         }
+
+        function updateBadge() {
+            const badge = document.getElementById('cartBadge');
+            if (badge) {
+                const cart = getCart();
+                badge.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            }
+        }
+
+        renderCheckout();
+        updateBadge();
     </script>
 </body>
 </html>
