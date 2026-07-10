@@ -134,6 +134,26 @@
             background: #d1d5db;
         }
         
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        
+        .btn-gray {
+            background: #6B7280;
+            color: white;
+        }
+        
+        .btn-gray:hover {
+            background: #4B5563;
+            transform: translateY(-2px);
+        }
+        
         .toolbar {
             display: flex;
             gap: 1rem;
@@ -390,9 +410,17 @@
         <main class="main-content">
             <div class="header">
                 <h1>📦 Product Management</h1>
-                <button class="btn btn-primary" onclick="showAddProductForm()">
-                    <i class="fas fa-plus"></i> Add New Product
-                </button>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="showAddProductForm()">
+                        <i class="fas fa-plus"></i> Add New
+                    </button>
+                    <button class="btn btn-success" onclick="showBulkUpload()">
+                        <i class="fas fa-file-upload"></i> Bulk Upload
+                    </button>
+                    <button class="btn btn-gray" onclick="downloadTemplate()">
+                        <i class="fas fa-download"></i> Template
+                    </button>
+                </div>
             </div>
             
             <div class="toolbar">
@@ -407,6 +435,78 @@
                 </div>
             </div>
         </main>
+        
+        <!-- Bulk Upload Modal -->
+        <div id="bulkUploadModal" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 800px;">
+                <h2>📤 Bulk Upload Products</h2>
+                <p style="color: #6B7280; margin-bottom: 1.5rem;">
+                    Upload a JSON file with your products. 
+                    <a href="#" onclick="downloadTemplate()" style="color: #2563EB;">Download template</a>
+                </p>
+                
+                <div id="uploadArea" style="
+                    border: 3px dashed #D1D5DB;
+                    border-radius: 16px;
+                    padding: 3rem 2rem;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    background: #F9FAFB;
+                ">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #9CA3AF; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #1F2937; margin-bottom: 0.5rem;">Drop your JSON file here</h3>
+                    <p style="color: #6B7280; margin-bottom: 1rem;">or click to browse</p>
+                    <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('jsonFileInput').click()">
+                        Choose File
+                    </button>
+                </div>
+                
+                <div id="uploadPreview" style="display: none; margin-top: 1.5rem;">
+                    <h4>📋 Preview</h4>
+                    <div id="previewContent" style="
+                        background: #F3F4F6;
+                        border-radius: 12px;
+                        padding: 1rem;
+                        max-height: 200px;
+                        overflow-y: auto;
+                        font-family: monospace;
+                        font-size: 0.85rem;
+                        margin: 0.5rem 0;
+                    "></div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button class="btn btn-primary" onclick="uploadProducts()" id="uploadBtn">
+                            <i class="fas fa-upload"></i> Upload Products
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeBulkUpload()">Cancel</button>
+                    </div>
+                </div>
+                
+                <div id="uploadProgress" style="display: none; margin-top: 1rem;">
+                    <div style="
+                        width: 100%;
+                        height: 8px;
+                        background: #E5E7EB;
+                        border-radius: 4px;
+                        overflow: hidden;
+                    ">
+                        <div id="progressBar" style="
+                            height: 100%;
+                            background: #2563EB;
+                            border-radius: 4px;
+                            transition: width 0.3s ease;
+                            width: 0%;
+                        "></div>
+                    </div>
+                    <p id="progressText" style="color: #6B7280; margin-top: 0.5rem; text-align: center;">0%</p>
+                </div>
+                
+                <div id="uploadResult" style="display: none; margin-top: 1rem;">
+                    <div id="resultContent" style="padding: 1rem; border-radius: 12px;"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="toastContainer"></div>
@@ -632,10 +732,9 @@
             }
         }
         
-        // 🔥 FIXED: Edit product - Loads data into form
+        // Edit product
         window.editProduct = async (id) => {
             try {
-                // Get the product data from Firestore
                 const productRef = doc(db, 'products', id);
                 const productSnap = await getDoc(productRef);
                 
@@ -645,9 +744,7 @@
                 }
                 
                 const product = { id: productSnap.id, ...productSnap.data() };
-                console.log('Editing product:', product);
                 
-                // Create the edit modal
                 const modal = document.createElement('div');
                 modal.className = 'modal';
                 modal.id = 'productModal';
@@ -699,7 +796,6 @@
                 `;
                 document.body.appendChild(modal);
                 
-                // Handle form submission
                 document.getElementById('editProductForm').addEventListener('submit', async (e) => {
                     e.preventDefault();
                     await updateProduct(id);
@@ -711,7 +807,7 @@
             }
         };
         
-        // 🔥 FIXED: Update product function
+        // Update product
         async function updateProduct(id) {
             try {
                 const name = document.getElementById('editProductName').value.trim();
@@ -796,6 +892,256 @@
                 console.error('Logout error:', error);
             }
         };
+        
+        // ============================================
+        // BULK UPLOAD FUNCTIONS
+        // ============================================
+        
+        // Show bulk upload modal
+        function showBulkUpload() {
+            document.getElementById('bulkUploadModal').style.display = 'flex';
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('uploadProgress').style.display = 'none';
+            document.getElementById('uploadResult').style.display = 'none';
+            document.getElementById('jsonFileInput').value = '';
+        }
+        
+        // Close bulk upload modal
+        function closeBulkUpload() {
+            document.getElementById('bulkUploadModal').style.display = 'none';
+        }
+        
+        // File input change handler
+        document.getElementById('jsonFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const jsonData = JSON.parse(event.target.result);
+                    validateAndPreview(jsonData);
+                } catch (error) {
+                    showToast('❌ Invalid JSON file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        });
+        
+        // Drag and drop support
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#2563EB';
+            uploadArea.style.background = '#EFF6FF';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#D1D5DB';
+            uploadArea.style.background = '#F9FAFB';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#D1D5DB';
+            uploadArea.style.background = '#F9FAFB';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.json')) {
+                document.getElementById('jsonFileInput').files = files;
+                document.getElementById('jsonFileInput').dispatchEvent(new Event('change'));
+            } else {
+                showToast('Please drop a valid JSON file', 'error');
+            }
+        });
+        
+        // Validate and preview JSON
+        function validateAndPreview(jsonData) {
+            let products = [];
+            
+            if (Array.isArray(jsonData)) {
+                products = jsonData;
+            } else if (jsonData.products && Array.isArray(jsonData.products)) {
+                products = jsonData.products;
+            } else {
+                showToast('❌ JSON must be an array or contain a "products" array', 'error');
+                return;
+            }
+            
+            let validProducts = [];
+            let errors = [];
+            
+            products.forEach((product, index) => {
+                const required = ['name', 'category', 'price', 'stock'];
+                const missing = required.filter(field => !product[field]);
+                
+                if (missing.length > 0) {
+                    errors.push(`Product ${index + 1} missing: ${missing.join(', ')}`);
+                } else {
+                    validProducts.push(product);
+                }
+            });
+            
+            if (errors.length > 0) {
+                showToast(`⚠️ ${errors.length} products have errors. Check console.`, 'error');
+                console.error('Validation errors:', errors);
+            }
+            
+            if (validProducts.length === 0) {
+                showToast('❌ No valid products found in JSON', 'error');
+                return;
+            }
+            
+            document.getElementById('uploadPreview').style.display = 'block';
+            document.getElementById('previewContent').textContent = JSON.stringify(validProducts, null, 2);
+            document.getElementById('uploadBtn').dataset.products = JSON.stringify(validProducts);
+            
+            showToast(`✅ Found ${validProducts.length} valid products ready to upload`, 'success');
+        }
+        
+        // Upload products to Firestore
+        async function uploadProducts() {
+            const productsJson = document.getElementById('uploadBtn').dataset.products;
+            if (!productsJson) {
+                showToast('❌ No products to upload', 'error');
+                return;
+            }
+            
+            const products = JSON.parse(productsJson);
+            const totalProducts = products.length;
+            let uploaded = 0;
+            let failed = 0;
+            
+            document.getElementById('uploadProgress').style.display = 'block';
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('uploadBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            
+            for (let i = 0; i < products.length; i++) {
+                try {
+                    const product = products[i];
+                    const slug = product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                    
+                    await addDoc(collection(db, 'products'), {
+                        name: product.name,
+                        slug: slug,
+                        category: product.category,
+                        price: parseFloat(product.price),
+                        stock: parseInt(product.stock),
+                        description: product.description || '',
+                        images: product.images && Array.isArray(product.images) ? product.images : 
+                               (product.images ? [product.images] : ['https://via.placeholder.com/300']),
+                        featured: product.featured || false,
+                        rating: product.rating || 0,
+                        sales: product.sales || 0,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    
+                    uploaded++;
+                    const progress = Math.round((uploaded / totalProducts) * 100);
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    document.getElementById('progressText').textContent = `${progress}% (${uploaded}/${totalProducts})`;
+                    
+                } catch (error) {
+                    failed++;
+                    console.error('Error uploading product:', error);
+                }
+            }
+            
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('uploadBtn').innerHTML = '<i class="fas fa-upload"></i> Upload Products';
+            
+            const resultDiv = document.getElementById('uploadResult');
+            const resultContent = document.getElementById('resultContent');
+            resultDiv.style.display = 'block';
+            
+            if (failed === 0) {
+                resultContent.style.background = '#ECFDF5';
+                resultContent.style.color = '#065F46';
+                resultContent.innerHTML = `
+                    <h3>✅ Success!</h3>
+                    <p>Uploaded ${uploaded} products successfully!</p>
+                    <button class="btn btn-primary" onclick="closeBulkUpload(); loadProducts();" style="margin-top: 1rem;">
+                        Refresh Product List
+                    </button>
+                `;
+                showToast(`✅ ${uploaded} products uploaded successfully!`, 'success');
+            } else {
+                resultContent.style.background = '#FEF2F2';
+                resultContent.style.color = '#991B1B';
+                resultContent.innerHTML = `
+                    <h3>⚠️ Partial Success</h3>
+                    <p>Uploaded ${uploaded} products, ${failed} failed.</p>
+                    <p style="font-size: 0.9rem;">Check console for errors.</p>
+                    <button class="btn btn-primary" onclick="closeBulkUpload(); loadProducts();" style="margin-top: 1rem;">
+                        Refresh Product List
+                    </button>
+                `;
+            }
+            
+            setTimeout(() => {
+                document.getElementById('uploadProgress').style.display = 'none';
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('progressText').textContent = '0%';
+            }, 10000);
+        }
+        
+        // Download template JSON
+        function downloadTemplate() {
+            const template = [
+                {
+                    "name": "Premium Wireless Headphones",
+                    "category": "Electronics",
+                    "price": 89.99,
+                    "stock": 50,
+                    "description": "High-quality wireless headphones with noise cancellation",
+                    "images": ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300"],
+                    "featured": true,
+                    "rating": 4.8,
+                    "sales": 150
+                },
+                {
+                    "name": "Smart Watch Pro",
+                    "category": "Electronics",
+                    "price": 149.99,
+                    "stock": 30,
+                    "description": "Advanced smartwatch with health tracking features",
+                    "images": ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300"],
+                    "featured": true,
+                    "rating": 4.6,
+                    "sales": 85
+                },
+                {
+                    "name": "Classic Leather Jacket",
+                    "category": "Clothing",
+                    "price": 199.99,
+                    "stock": 20,
+                    "description": "Premium leather jacket for all seasons",
+                    "images": ["https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300"],
+                    "featured": false,
+                    "rating": 4.7,
+                    "sales": 45
+                }
+            ];
+            
+            const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'product-template.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('📥 Template downloaded!', 'success');
+        }
+        
+        // ============================================
+        // MAKE FUNCTIONS GLOBAL (for onclick to work)
+        // ============================================
+        window.showBulkUpload = showBulkUpload;
+        window.closeBulkUpload = closeBulkUpload;
+        window.uploadProducts = uploadProducts;
+        window.downloadTemplate = downloadTemplate;
         
         // Load products on page load
         loadProducts();
